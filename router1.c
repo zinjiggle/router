@@ -52,7 +52,8 @@ typedef struct MESSAGE
 
 MSG* initMSG(MSG* p)
 {
-	memcpy(p,0, sizeof(MSG));
+	memset(p,0, sizeof(MSG));
+	memset(p->message,'\0',MAXMESSAGESIZE);
 	return p;
 }
 
