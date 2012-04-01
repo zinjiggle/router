@@ -183,7 +183,6 @@ struct PATH* calDijkstra(int* resultPathNum, int src, int numLinks, struct LINK*
 		}
 		if(tempNodeList[tempNodeListNum-1] == src)
 		{
-			paths[i].pathNodes = (int*) malloc(sizeof(int)*tempNodeListNum);
 			for(k = 0;k<tempNodeListNum;k++){
 				paths[i].pathNodes[k] = tempNodeList[tempNodeListNum-k-1];
 			}
