@@ -16,7 +16,7 @@
 #define ONETIMEALLOC 100 // every time when the buffer is full, allocate a new buffer with additional this long.
 #define STRINGBUFFERLENGTH 50; // the length of string buffer;
 #define MAXHOPNUM  100 // max number of hops
-#define MAXDMESSAGESIZE 500
+#define MAXMESSAGESIZE 500
 struct NetworkTopoStruct *pGlobalTopo = NULL;
 
 
