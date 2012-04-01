@@ -46,7 +46,7 @@ typedef struct MESSAGE
 	int src;     // source node
 	int hopNum;  // number of hops, including the src and the dest
 	int path[MAXHOPNUM];   // the forward path information
-	char message[MAXDMESSAGESIZE]; // real message inside
+	char message[MAXMESSAGESIZE]; // real message inside
 	struct LINK linkinfo;         //  the link cost control info
 }MSG;
 
