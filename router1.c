@@ -122,8 +122,6 @@ int fetchReceivedMessage(struct MESSAGE* p, char* buf)
     		strcpy(p->message, &buf[3]);
     		printf("%d fetchReceivedMessage: ",pGlobalTopo->myaddr);
     		printMESSAGE(buf);
-    		
-    		printf("Debug: after fetchingReceivedMessage\n");
     		//printf("fetchReceivedMessage: after transformation: type: %d dest: %d message: %s\n",p->msgType,p->dest,p->message);
 		return 1;
 	case 2:
@@ -169,8 +167,8 @@ char* generateForWardingMessage(int* MSGLen, struct PATH* shortest, struct MESSA
     	switch(pMSG->msgType){
     	case 1:
     		messageLen = 1+sizeof(int)+sizeof(int)*shortest->numHops+strlen(pMSG->message);
-    		newMessage = (char*)malloc(sizeof(char)*messageLen);
-    		memset(newMessage,0,sizeof(char)*messageLen);
+    		newMessage = (char*)malloc(sizeof(char)*(messageLen+10));
+    		memset(newMessage,0,sizeof(char)*(messageLen+10));
     		newMessage[0] = 2;
     		memcpy(&newMessage[1],&shortest->numHops,sizeof(int));
     		memcpy(&newMessage[1+sizeof(int)],shortest->pathNodes,sizeof(int)*shortest->numHops);
@@ -181,8 +179,8 @@ char* generateForWardingMessage(int* MSGLen, struct PATH* shortest, struct MESSA
     		return newMessage;
     	case 2:
     		messageLen = 1+sizeof(int)+sizeof(int)*pMSG->hopNum+strlen(pMSG->message);
-    		newMessage = (char*)malloc(sizeof(char)*messageLen);
-    		memset(newMessage,0,sizeof(char)*messageLen);
+    		newMessage = (char*)malloc(sizeof(char)*(messageLen+10));
+    		memset(newMessage,0,sizeof(char)*(messageLen+10));
     		newMessage[0] = 2;
     		memcpy(&newMessage[1],&pMSG->hopNum,sizeof(int));
     		memcpy(&newMessage[1+sizeof(int)],pMSG->path,sizeof(int)*pMSG->hopNum);
@@ -254,9 +252,14 @@ void updateLinkChange(struct LINK linkinfo, struct NetworkTopoStruct *Topo)
 
 void dealWithUDPMessage(char* receivebuf, int length, struct NetworkTopoStruct* p, int tcpsockfd)
 {
+    if(length>MAXDATASIZE) {
+    	printf("dealWithUDPMessage: Message Size too Big! Can not deal with it!\n");
+    	return;
+    }
     struct MESSAGE* pMSG = allocMSG();
     char* newMessage = NULL;
-    char* buf = (char*) malloc(sizeof(char)*(length+10));
+    char buf[MAXDATASIZE];
+    //char* buf = (char*) malloc(sizeof(char)*(length+10));
     memcpy(buf,receivebuf,sizeof(char)*(length+2));
     int newMSGLen = 0;
     int neiID=0;
@@ -349,7 +352,6 @@ void dealWithUDPMessage(char* receivebuf, int length, struct NetworkTopoStruct* 
     	break;
     }
     
-    free(buf);
     freeMSG(pMSG);
     freePATH(shortestPath,1);
     if(newMessage != NULL) free(newMessage);
