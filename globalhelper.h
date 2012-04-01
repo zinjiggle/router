@@ -9,7 +9,7 @@
 #ifndef _globalhelper_h
 #define _globalhelper_h
 
-#define MAXDATASIZE 200 // max number of bytes we can get at once 
+#define MAXDATASIZE 300 // max number of bytes we can get at once 
 #define max(A,B)	( (A) > (B) ? (A):(B)) 
 #define absolute(a)     ( (a) >= (0) ? (a):-(a))
 #define MAXNEIGHNUM  400 // maximum number of neighhours we can hold;
