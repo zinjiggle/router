@@ -15,8 +15,8 @@
 #define MAXNEIGHNUM  400 // maximum number of neighhours we can hold;
 #define ONETIMEALLOC 100 // every time when the buffer is full, allocate a new buffer with additional this long.
 #define STRINGBUFFERLENGTH 50; // the length of string buffer;
-#define MAXHOPNUM  50 // max number of hops
-#define MAXDMESSAGESIZE 400
+#define MAXHOPNUM  100 // max number of hops
+#define MAXDMESSAGESIZE 500
 struct NetworkTopoStruct *pGlobalTopo = NULL;
 
 

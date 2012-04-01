@@ -50,12 +50,23 @@ typedef struct MESSAGE
 	struct LINK linkinfo;         //  the link cost control info
 }MSG;
 
-MSG* initMAG(MSG* p)
+void initMAG(MSG* p)
 {
 	memcpy(p,0 sizeof(MSG));
+}
+
+struct MESSAGE* allocMSG()
+{
+	struct MESSAGE *p = (struct MESSAGE*) malloc(sizeof(struct MESSAGE));
+	memset(p,0,sizeof(struct MESSAGE));
 	return p;
 }
 
+void freeMSG(struct MESSAGE *p)
+{
+	if(p->path != NULL) free(p->path);
+	free(p);
+}
 
 
 
@@ -78,6 +89,7 @@ void printMESSAGE(char* message)
 	switch(msgType){
 	case 1:
 		printf("printMESSAGE messagetype: %d ", msgType);
+		//memcpy(1+( (char*)&dest ),&message[1],1);
 		dest = byte2int(&message[1]);
     		printf("dest: %d message: %s\n",dest,&message[3]);
 		return;
@@ -115,22 +127,31 @@ int fetchReceivedMessage(struct MESSAGE* p, char* buf)
     		strcpy(p->message, &buf[3]);
     		printf("%d fetchReceivedMessage: ",pGlobalTopo->myaddr);
     		printMESSAGE(buf);
-    	return 1;
+    		//printf("fetchReceivedMessage: after transformation: type: %d dest: %d message: %s\n",p->msgType,p->dest,p->message);
+		return 1;
 	case 2:
 		path = (int*)(buf+1);
 		p->hopNum = path[0];
+		p->path = (int*)malloc(sizeof(int)*p->hopNum);
 		memcpy(p->path,&path[1],sizeof(int)*p->hopNum);
 		strcpy(p->message,buf+1+sizeof(int)*(p->hopNum+1));
 		p->src = p->path[0];
 		p->dest = p->path[p->hopNum-1];
+		//printf("fetchReceivedMessage: %d %d %s\n",p->msgType,p->dest,p->message);
 		printf("%d fetchReceivedMessage: ",pGlobalTopo->myaddr);
     		printMESSAGE(buf);
 		return 2;
 	case 3:
 		memcpy(&p->linkinfo,&buf[1],sizeof(struct LINK));
+		//printf("fetchReceivedMessage: %d %d %d %.0f\n",p->msgType,p->linkinfo.nodeAddr[0],p->linkinfo.nodeAddr[1],p->linkinfo.cost);
+		//printf("fetchReceivedMessage: ");
+    		//printMESSAGE(buf);
 		return 3;
 	case 4:
 		memcpy(&p->linkinfo,&buf[1],sizeof(struct LINK));
+		//printf("fetchReceivedMessage: %d %d %d %.0f\n",p->msgType,p->linkinfo.nodeAddr[0],p->linkinfo.nodeAddr[1],p->linkinfo.cost);
+		//printf("fetchReceivedMessage: ");
+    		//printMESSAGE(buf);
 		return 4;
 	default: 
 		printf("Unknown UDP fetchReceivedMessage\n");
@@ -141,15 +162,18 @@ int fetchReceivedMessage(struct MESSAGE* p, char* buf)
 
 
 // generate type 2 message.
-char* generateForWardingMessage(char* newMessage,int* MSGLen, struct PATH* shortest, struct MESSAGE* pMSG)
+char* generateForWardingMessage(int* MSGLen, struct PATH* shortest, struct MESSAGE* pMSG)
 {
 	// generate forwarding message: type 2
     	int messageLen = 0;
     	int numbytes = 0;
+    	char* newMessage;
     	char* pos=NULL;
     	switch(pMSG->msgType){
     	case 1:
     		messageLen = 1+sizeof(int)+sizeof(int)*shortest->numHops+strlen(pMSG->message);
+    		newMessage = (char*)malloc(sizeof(char)*(messageLen+10));
+    		memset(newMessage,0,sizeof(char)*(messageLen+10));
     		newMessage[0] = 2;
     		memcpy(&newMessage[1],&shortest->numHops,sizeof(int));
     		memcpy(&newMessage[1+sizeof(int)],shortest->pathNodes,sizeof(int)*shortest->numHops);
@@ -160,6 +184,8 @@ char* generateForWardingMessage(char* newMessage,int* MSGLen, struct PATH* short
     		return newMessage;
     	case 2:
     		messageLen = 1+sizeof(int)+sizeof(int)*pMSG->hopNum+strlen(pMSG->message);
+    		newMessage = (char*)malloc(sizeof(char)*(messageLen+10));
+    		memset(newMessage,0,sizeof(char)*(messageLen+10));
     		newMessage[0] = 2;
     		memcpy(&newMessage[1],&pMSG->hopNum,sizeof(int));
     		memcpy(&newMessage[1+sizeof(int)],pMSG->path,sizeof(int)*pMSG->hopNum);
@@ -170,7 +196,11 @@ char* generateForWardingMessage(char* newMessage,int* MSGLen, struct PATH* short
     		return newMessage;
     	default:
     		return NULL;
-    	}   	
+    	
+    	}
+    	
+    	
+    	
 }
 
 bool broadCastLinkInfo(int messagetype, struct LINK link, struct NetworkTopoStruct* Topo)
@@ -227,20 +257,24 @@ void updateLinkChange(struct LINK linkinfo, struct NetworkTopoStruct *Topo)
 
 void dealWithUDPMessage(char* receivebuf, int length, struct NetworkTopoStruct* p, int tcpsockfd)
 {
-    if(length>MAXDMESSAGESIZE) {
+    if(length>MAXDATASIZE) {
     	printf("dealWithUDPMessage: Message Size too Big! Can not deal with it!\n");
     	return;
     }
-    MSG message,*pMSG;
-    pMSG = initMSG(&message);
-    char newMessage[MAXMESSAGESIZE];
-    char buf[MAXMESSAGESIZE];
+    struct MESSAGE* pMSG = allocMSG();
+    char* newMessage = NULL;
+    char buf[MAXDATASIZE];
+    //char* buf = (char*) malloc(sizeof(char)*(length+10));
     memcpy(buf,receivebuf,sizeof(char)*(length+2));
     int newMSGLen = 0;
     int neiID=0;
     int i;
     char sendbuf[MAXDATASIZE];
     struct PATH * shortestPath = allocPATH(1);
+    /*
+    printf("dealWithUDPMessage: new packet received: ");
+    printMESSAGE(buf);
+    */
     if (fetchReceivedMessage(pMSG, buf)==0) {
     	perror("ERR in dealWithUDPMessage: fetch received message error !\n");
     	return;
@@ -256,7 +290,7 @@ void dealWithUDPMessage(char* receivebuf, int length, struct NetworkTopoStruct* 
     		receive(tcpsockfd,buf);
     		break;
     	}
-    	generateForWardingMessage(newMessage,&newMSGLen,shortestPath,pMSG);
+    	newMessage = generateForWardingMessage(&newMSGLen,shortestPath,pMSG);
     	// send log information
     	sprintf(sendbuf,"LOG FWD %d %s",shortestPath->nexthop,pMSG->message);
     	sendmessage(tcpsockfd,sendbuf);
@@ -290,7 +324,7 @@ void dealWithUDPMessage(char* receivebuf, int length, struct NetworkTopoStruct* 
     		sendmessage(tcpsockfd,sendbuf);
     		receive(tcpsockfd,buf); // This is LOG OK received
     		// generate forward message
-		 	generateForWardingMessage(newMessage,&newMSGLen,NULL,pMSG);
+		newMessage = generateForWardingMessage(&newMSGLen,NULL,pMSG);
     		if((neiID = fetchNeiIdByAddr(p,pMSG->path[i+1])) < 0){
     			perror("ERR dealWithUDPMessage case 2: neigh id not found\n");
     			exit(1);
@@ -322,7 +356,11 @@ void dealWithUDPMessage(char* receivebuf, int length, struct NetworkTopoStruct* 
     default:
     	break;
     }
+    
+    freeMSG(pMSG);
     freePATH(shortestPath,1);
+    if(newMessage != NULL) free(newMessage);
+    
 }
 
 
