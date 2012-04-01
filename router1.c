@@ -225,7 +225,7 @@ void updateLinkChange(struct LINK linkinfo, struct NetworkTopoStruct *Topo)
 }
 
 
-void dealWithUDPMessage(char* receivebuf, int length, struct NetworkTopoStruct* p, int tcpsockfd)
+void dealWithUDPMessage(char* buf, int length, struct NetworkTopoStruct* p, int tcpsockfd)
 {
     if(length>MAXMESSAGESIZE) {
     	printf("dealWithUDPMessage: Message Size too Big! Can not deal with it!\n");
@@ -234,8 +234,9 @@ void dealWithUDPMessage(char* receivebuf, int length, struct NetworkTopoStruct* 
     MSG message,*pMSG;
     pMSG = initMSG(&message);
     char newMessage[MAXMESSAGESIZE];
-    char buf[MAXMESSAGESIZE];
-    memcpy(buf,receivebuf,sizeof(char)*(length+2));
+    //char buf[MAXMESSAGESIZE];
+    //memset(buf,'\0',sizeof(char)*MAXMESSAGESIZE);
+    //memcpy(buf,receivebuf,sizeof(char)*(length+2));
     int newMSGLen = 0;
     int neiID=0;
     int i;
