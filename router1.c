@@ -349,6 +349,7 @@ void dealWithUDPMessage(char* receivebuf, int length, struct NetworkTopoStruct* 
     	break;
     }
     
+    free(buf);
     freeMSG(pMSG);
     freePATH(shortestPath,1);
     if(newMessage != NULL) free(newMessage);
