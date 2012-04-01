@@ -50,9 +50,9 @@ typedef struct MESSAGE
 	struct LINK linkinfo;         //  the link cost control info
 }MSG;
 
-MSG* initMAG(MSG* p)
+MSG* initMSG(MSG* p)
 {
-	memcpy(p,0 sizeof(MSG));
+	memcpy(p,0, sizeof(MSG));
 	return p;
 }
 
