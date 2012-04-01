@@ -122,6 +122,8 @@ int fetchReceivedMessage(struct MESSAGE* p, char* buf)
     		strcpy(p->message, &buf[3]);
     		printf("%d fetchReceivedMessage: ",pGlobalTopo->myaddr);
     		printMESSAGE(buf);
+    		
+    		printf("Debug: after fetchingReceivedMessage\n");
     		//printf("fetchReceivedMessage: after transformation: type: %d dest: %d message: %s\n",p->msgType,p->dest,p->message);
 		return 1;
 	case 2:
