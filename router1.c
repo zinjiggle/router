@@ -227,7 +227,7 @@ void updateLinkChange(struct LINK linkinfo, struct NetworkTopoStruct *Topo)
 
 void dealWithUDPMessage(char* receivebuf, int length, struct NetworkTopoStruct* p, int tcpsockfd)
 {
-    if(length>MAXDMESSAGESIZE) {
+    if(length>MAXMESSAGESIZE) {
     	printf("dealWithUDPMessage: Message Size too Big! Can not deal with it!\n");
     	return;
     }
