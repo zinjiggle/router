@@ -242,7 +242,8 @@ void dealWithUDPMessage(char* buf, int length, struct NetworkTopoStruct* p, int 
     int neiID=0;
     int i;
     char sendbuf[MAXDATASIZE];
-    struct PATH * shortestPath = allocPATH(1);
+    SPATH s_path;
+    SPATH *shortestPath = initPathList(&s_path,1);
     if (fetchReceivedMessage(pMSG, buf)==0) {
     	perror("ERR in dealWithUDPMessage: fetch received message error !\n");
     	return;
@@ -324,7 +325,6 @@ void dealWithUDPMessage(char* buf, int length, struct NetworkTopoStruct* p, int 
     default:
     	break;
     }
-    freePATH(shortestPath,1);
 }
 
 

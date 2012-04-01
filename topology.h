@@ -29,13 +29,13 @@ struct LINK{
     float cost;     // link cost
 };
 
-struct PATH{
+typedef struct PATH{
     int dest;  // destination node
     int nexthop; // the next hop node
     float cost;  // the cost to the destination
     int numHops; // the number of hops, including src itself.
-    int* pathNodes; // the pathNodes: src node1 node2 node3 ...dest
-};
+    int pathNodes[MAXHOPNUM]; // the pathNodes: src node1 node2 node3 ...dest
+}SPATH;
 
 void printPATH(struct PATH * p)
 {
@@ -98,31 +98,28 @@ void clean(char* buf)
 	buf[0] = '\0';
 }
 
-struct PATH* allocPATH(int size)
+SPATH* allocPATH(int size)
 {
-	struct PATH *p = (struct PATH*) malloc(sizeof(struct PATH)*size);
-	memset(p,0,sizeof(struct PATH)*size);
+    SPATH* p = (SPATH*)malloc(sizeof(SPATH)*size);
+    memset(p,0,sizeof(SPATH)*size);
+    return p;
+}
+
+SPATH* initPathList(SPATH* p, int size)
+{
+	memset(p,0,sizeof(SPATH)*size);
 	return p;
 }
 
-void freePATH(struct PATH* p, int size)
+void freePATH(SPATH* p, int size)
 {
-	if (p==NULL) return;
-	int i;
-	for (i=0;i<size;i++)
-	{
-		if(p[i].pathNodes != NULL) free(p[i].pathNodes);
-	}
-	free(p);
+    free(p);
 }
+
 
 void copyPATH(struct PATH* dest, struct PATH* src)
 {
-	memcpy(dest,src,sizeof(struct PATH));
-	if(src->numHops!=0){
-		dest->pathNodes = (int*) malloc(sizeof(int)*src->numHops);
-		memcpy(dest->pathNodes,src->pathNodes,sizeof(int)*src->numHops);
-	}
+	*dest = *src;
 }
 
 
@@ -161,9 +158,6 @@ void freeTopo(struct NetworkTopoStruct* p)
     int i;
     free(p->Links);
     free(p->Neighs);
-    for(i=0;i<p->maxPathNum;i++){
-        if(!p->Paths[i].pathNodes) free(p->Paths[i].pathNodes);
-    }
     free(p->Paths);
     free(p);
 }
@@ -217,12 +211,7 @@ void addPATHSize(struct NetworkTopoStruct* p)
 {
     printf("HERE: add path size, new paths not initialized");
     int oldMax = p->maxPathNum;
-    int i;
     struct PATH* temp =(struct PATH*)addNewSize(&p->maxPathNum,(void**)&p->Paths,sizeof(struct PATH));
-    // free temp
-    for(i=0;i<oldMax; i++){
-        if(!temp[i].pathNodes) free(temp[i].pathNodes);
-    }
     free(temp);
 }
 

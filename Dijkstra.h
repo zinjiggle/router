@@ -89,10 +89,23 @@ struct PATH* calDijkstra(int* resultPathNum, int src, int numLinks, struct LINK*
 	if (numLinks == 0 || pLink==NULL || src < 0) return NULL;
 	
 	int numNodes = 0,i=0,j=0,k=0;
-	int lenNodeList = numLinks;
 	int *nodeList = (int*)malloc(sizeof(int)*numLinks);
 	memset(nodeList,0,sizeof(int)*numLinks);
-	int *tempNodeList = (int*)malloc(sizeof(int)*numNodes);
+		
+	// fetch the number of nodes from the link information
+	for(i=0;i<numLinks;i++)
+	{
+		insertIntoIntArray(pLink[i].nodeAddr[0], nodeList, &numNodes);
+		insertIntoIntArray(pLink[i].nodeAddr[1], nodeList, &numNodes);
+	}
+	if(searchIntArray(src,nodeList,numNodes) < 0) {
+        free(nodeList);
+        return NULL;
+    }
+	else reArrange(0, src, nodeList, numNodes);  // put the src in the first position of nodeList
+    
+    // then define them;
+    int *tempNodeList = (int*)malloc(sizeof(int)*numNodes);
 	memset(tempNodeList,0,sizeof(int)*numNodes);
 	int tempNodeListNum = 0;
 	struct PATH* paths =NULL;
@@ -103,15 +116,6 @@ struct PATH* calDijkstra(int* resultPathNum, int src, int numLinks, struct LINK*
 	float alt;
 	int u;
 	
-	
-	// fetch the number of nodes from the link information
-	for(i=0;i<numLinks;i++)
-	{
-		insertIntoIntArray(pLink[i].nodeAddr[0], nodeList, &numNodes);
-		insertIntoIntArray(pLink[i].nodeAddr[1], nodeList, &numNodes);
-	}
-	if(searchIntArray(src,nodeList,numNodes) < 0) return NULL;
-	else reArrange(0, src, nodeList, numNodes);  // put the src in the first position of nodeList
 	/* debug
 	printf("Dijkstra: node list is ");
 	printARRAY(nodeList,numNodes,'i');
